@@ -8,7 +8,6 @@ import {
 } from "@/lib/github";
 import { determinePersonality } from "@/lib/personality";
 import { calculateAchievements } from "@/lib/achievements";
-import { generateMockData } from "@/lib/mock";
 
 export const dynamic = "force-dynamic";
 
@@ -94,10 +93,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: `User "${username}" not found` }, { status: 404 });
     }
     if (error?.status === 403) {
-      const fallback = generateMockData(username, "", username.charAt(0).toUpperCase() + username.slice(1));
-      return NextResponse.json(fallback, { status: 200 });
+      return NextResponse.json(
+        { error: "GitHub API rate limit exceeded. Wait about an hour and try again." },
+        { status: 429 }
+      );
     }
-    const fallback = generateMockData(username, "", username.charAt(0).toUpperCase() + username.slice(1));
-    return NextResponse.json(fallback, { status: 200 });
+    return NextResponse.json(
+      { error: error?.message || "Failed to fetch GitHub data" },
+      { status: 500 }
+    );
   }
 }

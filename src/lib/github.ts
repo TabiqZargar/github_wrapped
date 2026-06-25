@@ -69,41 +69,23 @@ export async function fetchAllLanguages(username: string, repos: Repository[]): 
     Haskell: "#5D4F85",
   };
 
-  const langBytes = new Map<string, number>();
-
-  const batchSize = 10;
-  for (let i = 0; i < repos.length; i += batchSize) {
-    const batch = repos.slice(i, i + batchSize);
-    const results = await Promise.allSettled(
-      batch.map((repo) => fetchRepoLanguages(username, repo.name))
-    );
-    for (const result of results) {
-      if (result.status === "fulfilled") {
-        for (const [lang, bytes] of Object.entries(result.value)) {
-          langBytes.set(lang, (langBytes.get(lang) || 0) + bytes);
-        }
-      }
+  const langMap = new Map<string, number>();
+  for (const repo of repos) {
+    if (repo.language) {
+      langMap.set(repo.language, (langMap.get(repo.language) || 0) + 1);
     }
   }
 
-  if (langBytes.size === 0) {
-    for (const repo of repos) {
-      if (repo.language) {
-        langBytes.set(repo.language, (langBytes.get(repo.language) || 0) + 1);
-      }
-    }
-  }
+  const total = Array.from(langMap.values()).reduce((a, b) => a + b, 0);
 
-  const total = Array.from(langBytes.values()).reduce((a, b) => a + b, 0);
-
-  return Array.from(langBytes.entries())
-    .map(([name, bytes]) => ({
+  return Array.from(langMap.entries())
+    .map(([name, count]) => ({
       name,
-      percentage: total > 0 ? parseFloat(((bytes / total) * 100).toFixed(1)) : 0,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
       color: colors[name] || "#6B7280",
-      count: bytes,
+      count,
     }))
-    .sort((a, b) => b.percentage - a.percentage);
+    .sort((a, b) => b.count - a.count);
 }
 
 export function calculateAccountAge(createdAt: string): number {
