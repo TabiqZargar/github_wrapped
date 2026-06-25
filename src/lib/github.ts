@@ -61,7 +61,6 @@ export async function fetchRepoLanguages(username: string, repo: string): Promis
 }
 
 export async function fetchAllLanguages(username: string, repos: Repository[]): Promise<LanguageStat[]> {
-  const langMap = new Map<string, number>();
   const colors: Record<string, string> = {
     TypeScript: "#3178C6", JavaScript: "#F7DF1E", Python: "#3572A5", Rust: "#DEA584",
     Go: "#00ADD8", Java: "#B07219", "C++": "#F34B7D", C: "#555555", "C#": "#178600",
@@ -70,22 +69,41 @@ export async function fetchAllLanguages(username: string, repos: Repository[]): 
     Haskell: "#5D4F85",
   };
 
-  for (const repo of repos) {
-    if (repo.language) {
-      langMap.set(repo.language, (langMap.get(repo.language) || 0) + 1);
+  const langBytes = new Map<string, number>();
+
+  const batchSize = 10;
+  for (let i = 0; i < repos.length; i += batchSize) {
+    const batch = repos.slice(i, i + batchSize);
+    const results = await Promise.allSettled(
+      batch.map((repo) => fetchRepoLanguages(username, repo.name))
+    );
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        for (const [lang, bytes] of Object.entries(result.value)) {
+          langBytes.set(lang, (langBytes.get(lang) || 0) + bytes);
+        }
+      }
     }
   }
 
-  const total = Array.from(langMap.values()).reduce((a, b) => a + b, 0);
+  if (langBytes.size === 0) {
+    for (const repo of repos) {
+      if (repo.language) {
+        langBytes.set(repo.language, (langBytes.get(repo.language) || 0) + 1);
+      }
+    }
+  }
 
-  return Array.from(langMap.entries())
-    .map(([name, count]) => ({
+  const total = Array.from(langBytes.values()).reduce((a, b) => a + b, 0);
+
+  return Array.from(langBytes.entries())
+    .map(([name, bytes]) => ({
       name,
-      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      percentage: total > 0 ? parseFloat(((bytes / total) * 100).toFixed(1)) : 0,
       color: colors[name] || "#6B7280",
-      count,
+      count: bytes,
     }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => b.percentage - a.percentage);
 }
 
 export function calculateAccountAge(createdAt: string): number {
