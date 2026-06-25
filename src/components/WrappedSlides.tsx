@@ -4,13 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WrappedData } from "@/types";
 import { AnimatedCounter } from "./AnimatedCounter";
-import { PersonalityCard } from "./PersonalityCard";
-import { LanguageChart } from "./LanguageChart";
-import { AchievementCard } from "./AchievementCard";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Star, Code2, Globe, FolderGit2, Crown, Users, BookOpen, Trophy, Github } from "lucide-react";
 
 interface WrappedSlidesProps {
   data: WrappedData;
@@ -20,19 +13,18 @@ const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 600 : -600,
     opacity: 0,
-    scale: 0.95,
   }),
   center: {
     x: 0,
     opacity: 1,
-    scale: 1,
   },
   exit: (direction: number) => ({
     x: direction > 0 ? -600 : 600,
     opacity: 0,
-    scale: 0.95,
   }),
 };
+
+const barColors = ["#6fdd78", "#a2c9ff", "#d8baff", "#fda4af", "#fbbf24", "#67e8f9"];
 
 export function WrappedSlides({ data }: WrappedSlidesProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -46,12 +38,7 @@ export function WrappedSlides({ data }: WrappedSlidesProps) {
     { id: "starred", component: <SlideStarred data={data} /> },
     { id: "diversity", component: <SlideDiversity data={data} /> },
     { id: "reach", component: <SlideReach data={data} /> },
-    { id: "personality", component: (
-      <div className="text-center max-w-lg mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-gradient">Your Developer Personality</h2>
-        <PersonalityCard personality={data.personality} />
-      </div>
-    )},
+    { id: "personality", component: <SlidePersonality data={data} /> },
     { id: "achievements", component: <SlideAchievements data={data} /> },
     { id: "summary", component: <SlideSummary data={data} /> },
     { id: "share", component: <SlideShare data={data} /> },
@@ -105,7 +92,7 @@ export function WrappedSlides({ data }: WrappedSlidesProps) {
   return (
     <div className="fixed inset-0 bg-black flex flex-col" role="main" aria-label="GitHub Wrapped story">
       <div className="absolute top-0 left-0 right-0 z-50 p-4">
-        <div className="flex gap-1.5 max-w-2xl mx-auto">
+        <div className="flex gap-1.5 max-w-container-max mx-auto">
           {slides.map((_, i) => (
             <div
               key={i}
@@ -115,24 +102,24 @@ export function WrappedSlides({ data }: WrappedSlidesProps) {
             />
           ))}
         </div>
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-muted-foreground">
+        <div className="flex items-center justify-between mt-3 max-w-container-max mx-auto">
+          <span className="text-mono-label text-on-surface-variant">
             {currentSlide + 1} / {totalSlides}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={() => setAutoplay(!autoplay)}
-            className="text-muted-foreground hover:text-white"
+            className="text-on-surface-variant hover:text-white transition-colors"
             aria-label={autoplay ? "Pause autoplay" : "Start autoplay"}
           >
-            {autoplay ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </Button>
+            <span className="material-symbols-outlined text-xl">
+              {autoplay ? "pause" : "play_arrow"}
+            </span>
+          </button>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="relative w-full max-w-3xl">
+        <div className="relative w-full max-w-container-max">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentSlide}
@@ -151,24 +138,30 @@ export function WrappedSlides({ data }: WrappedSlidesProps) {
       </div>
 
       <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center gap-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
+        <button
           onClick={goPrev}
           disabled={!canGoPrev}
+          className="glass-card rounded-full p-3 disabled:opacity-30 transition-opacity"
           aria-label="Previous slide"
-          className="bg-white/5 border-white/10 hover:bg-white/20"
         >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
+          <span className="material-symbols-outlined text-white">chevron_left</span>
+        </button>
         {canGoNext ? (
-          <Button variant="gradient" onClick={goNext} aria-label="Next slide" className="min-w-[120px]">
-            Next <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
+          <button
+            onClick={goNext}
+            className="bg-primary text-on-primary font-semibold px-8 py-3 rounded-full transition-transform hover:scale-105"
+            aria-label="Next slide"
+          >
+            Next
+          </button>
         ) : (
-          <Button variant="gradient" onClick={() => window.location.href = `/dashboard?username=${data.username}`} aria-label="View dashboard" className="min-w-[160px]">
-            View Dashboard <Sparkles className="w-4 h-4 ml-1" />
-          </Button>
+          <button
+            onClick={() => (window.location.href = `/dashboard?username=${data.username}`)}
+            className="glass-card font-semibold px-8 py-3 rounded-full transition-transform hover:scale-105"
+            aria-label="View dashboard"
+          >
+            View Dashboard
+          </button>
         )}
       </div>
     </div>
@@ -177,131 +170,94 @@ export function WrappedSlides({ data }: WrappedSlidesProps) {
 
 function SlideWelcome({ data }: { data: WrappedData }) {
   return (
-    <div className="text-center">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-indigo-900 via-slate-900 to-black rounded-3xl p-8">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="mb-8 inline-block"
       >
-        <Avatar className="w-28 h-28 ring-4 ring-purple-500/50 ring-offset-4 ring-offset-black mx-auto">
-          <AvatarImage src={data.avatarUrl} alt={data.name} />
-          <AvatarFallback className="text-3xl">{data.name[0]}</AvatarFallback>
-        </Avatar>
+        <div className="w-32 h-32 rounded-full border-4 border-primary p-1">
+          <img
+            src={data.avatarUrl}
+            alt={data.name}
+            className="w-full h-full rounded-full object-cover"
+          />
+        </div>
       </motion.div>
-      <motion.h1
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-5xl font-bold mb-3"
-      >
-        {data.name}
-      </motion.h1>
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-xl text-muted-foreground mb-2"
+        transition={{ delay: 0.3 }}
+        className="font-mono-label text-mono-label text-primary-fixed uppercase tracking-widest mt-6"
       >
-        @{data.username}
+        GitHub Wrapped {new Date().getFullYear()}
       </motion.p>
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="font-display-xl text-display-lg-mobile md:text-display-xl text-white text-center mt-2"
+      >
+        {data.name}
+      </motion.h1>
       {data.bio && (
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="text-base text-muted-foreground max-w-md mx-auto"
+          className="font-body-lg text-body-lg text-on-surface-variant max-w-xs text-center mt-4"
         >
           {data.bio}
         </motion.p>
       )}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        className="text-lg text-gradient font-semibold mt-4"
-      >
-        GitHub Wrapped {new Date().getFullYear()}
-      </motion.p>
-    </div>
-  );
-}
-
-function SlideStat({ icon, value, label, subtitle, gradient, suffix = "" }: {
-  icon: React.ReactNode; value: number; label: string; subtitle: string; gradient: string; suffix?: string;
-}) {
-  return (
-    <div className="text-center">
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className={`inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br ${gradient} mb-8 shadow-lg`}
-      >
-        {icon}
-      </motion.div>
-      <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-3"
+        transition={{ delay: 1.2 }}
+        className="animate-bounce mt-8"
       >
-        {label}
-      </motion.p>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-7xl font-bold mb-3"
-      >
-        <AnimatedCounter end={value} suffix={suffix} />
+        <span className="material-symbols-outlined text-on-surface-variant text-3xl">
+          keyboard_double_arrow_down
+        </span>
       </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="text-lg text-muted-foreground"
-      >
-        {subtitle}
-      </motion.p>
     </div>
   );
 }
 
 function SlideRepos({ data }: { data: WrappedData }) {
   return (
-    <div className="text-center">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-emerald-900 via-teal-950 to-black rounded-3xl p-8">
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="font-mono-label text-mono-label text-secondary uppercase tracking-widest mb-6"
+      >
+        Your Contribution
+      </motion.p>
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-8 shadow-lg"
+        className="glass-card rounded-2xl p-8 flex flex-col items-center gap-4"
       >
-        <BookOpen className="w-12 h-12" />
-      </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-3"
-      >
-        Public Repositories
-      </motion.p>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-7xl font-bold mb-3"
-      >
-        <AnimatedCounter end={data.totalRepos} />
+        <span className="material-symbols-outlined text-8xl text-primary">inventory_2</span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-9xl font-bold text-white"
+        >
+          <AnimatedCounter end={data.totalRepos} />
+        </motion.div>
       </motion.div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}
-        className="text-lg text-muted-foreground"
+        className="font-body-md text-body-md text-on-surface-variant mt-4"
       >
-        projects built and shared with the world
+        Public Repositories
       </motion.p>
     </div>
   );
@@ -309,40 +265,65 @@ function SlideRepos({ data }: { data: WrappedData }) {
 
 function SlideTopLanguage({ data }: { data: WrappedData }) {
   const top = data.topLanguages[0];
-  if (!top) return null;
+  if (!top) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-blue-900 via-indigo-950 to-black rounded-3xl p-8">
+        <p className="text-on-surface-variant">No language data available</p>
+      </div>
+    );
+  }
   return (
-    <div className="text-center">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mb-8 shadow-lg"
-      >
-        <Code2 className="w-12 h-12" />
-      </motion.div>
+    <div className="relative flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-blue-900 via-indigo-950 to-black rounded-3xl p-8 overflow-hidden">
+      <div className="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="w-2 bg-gradient-to-t from-blue-400 to-cyan-300 rounded-full animate-float"
+            style={{
+              height: `${40 + i * 25}px`,
+              animationDelay: `${i * 0.4}s`,
+            }}
+          />
+        ))}
+      </div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-3"
+        transition={{ delay: 0.2 }}
+        className="font-mono-label text-mono-label text-secondary uppercase tracking-widest mb-6 relative z-10"
       >
-        Most Used Language
+        Your Primary Tool
       </motion.p>
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="text-6xl font-bold mb-3 text-gradient"
+        className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 relative z-10 text-center"
       >
         {top.name}
       </motion.h2>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="relative z-10 w-full max-w-xs mt-8"
+      >
+        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${top.percentage}%` }}
+            transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
+            className="h-full bg-gradient-to-r from-blue-400 to-cyan-300 rounded-full"
+          />
+        </div>
+      </motion.div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="text-xl text-muted-foreground"
+        transition={{ delay: 1.3 }}
+        className="text-on-surface-variant mt-3 font-mono-label text-mono-label relative z-10"
       >
-        used in <span className="text-white font-bold">{top.count}</span> repository{top.count !== 1 ? "ies" : "y"}
+        {top.percentage.toFixed(0)}% of your code
       </motion.p>
     </div>
   );
@@ -351,66 +332,48 @@ function SlideTopLanguage({ data }: { data: WrappedData }) {
 function SlideStarred({ data }: { data: WrappedData }) {
   const repo = data.mostStarredRepo;
   return (
-    <div className="text-center max-w-lg mx-auto">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 mb-8 shadow-lg"
-      >
-        <Crown className="w-12 h-12" />
-      </motion.div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-purple-900 via-fuchsia-950 to-black rounded-3xl p-8">
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-3"
+        transition={{ delay: 0.2 }}
+        className="font-mono-label text-mono-label text-secondary uppercase tracking-widest mb-6"
       >
         Most Starred Repository
       </motion.p>
       {repo ? (
-        <>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-3xl font-bold mb-2"
-          >
-            {repo.name}
-          </motion.h2>
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="glass-card premium-border rounded-2xl p-8 max-w-md w-full"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-tertiary/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-tertiary">grade</span>
+            </div>
+            <h3 className="text-xl font-bold text-white truncate">{repo.name}</h3>
+          </div>
           {repo.description && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-muted-foreground mb-4 text-sm"
-            >
-              {repo.description}
-            </motion.p>
+            <p className="text-on-surface-variant text-sm mb-6 line-clamp-2">{repo.description}</p>
           )}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex justify-center gap-6"
-          >
-            <div className="text-center">
-              <p className="text-3xl font-bold text-gradient-gold">{repo.stargazers_count}</p>
-              <p className="text-xs text-muted-foreground">Stars</p>
+          <div className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">star</span>
+              <span className="text-white font-bold text-xl">{repo.stargazers_count}</span>
             </div>
-            <div className="w-px bg-white/10" />
-            <div className="text-center">
-              <p className="text-3xl font-bold">{repo.forks_count}</p>
-              <p className="text-xs text-muted-foreground">Forks</p>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary text-lg">fork_right</span>
+              <span className="text-white font-bold text-xl">{repo.forks_count}</span>
             </div>
-          </motion.div>
-        </>
+          </div>
+        </motion.div>
       ) : (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-muted-foreground"
+          transition={{ delay: 0.4 }}
+          className="text-on-surface-variant"
         >
           No starred repositories found
         </motion.p>
@@ -420,174 +383,191 @@ function SlideStarred({ data }: { data: WrappedData }) {
 }
 
 function SlideDiversity({ data }: { data: WrappedData }) {
+  const langs = data.topLanguages.slice(0, 5);
   return (
-    <div className="text-center max-w-lg mx-auto">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 mb-8 shadow-lg"
-      >
-        <Globe className="w-12 h-12" />
-      </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-3"
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-surface-container-lowest rounded-3xl p-8">
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="font-headline-md text-headline-md text-white mb-8"
       >
         Language Diversity
-      </motion.p>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-7xl font-bold mb-3 text-gradient"
-      >
-        <AnimatedCounter end={data.languageDiversity} />
-      </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="text-lg text-muted-foreground mb-6"
-      >
-        different languages across your repositories
-      </motion.p>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        className="max-w-sm mx-auto"
-      >
-        <LanguageChart languages={data.topLanguages} />
-      </motion.div>
+      </motion.h2>
+      {langs.length > 0 ? (
+        <div className="w-full max-w-md space-y-4">
+          {langs.map((lang, i) => (
+            <motion.div
+              key={lang.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+            >
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium text-on-surface-variant">{lang.name}</span>
+                <span className="text-sm text-on-surface-variant">{lang.percentage.toFixed(0)}%</span>
+              </div>
+              <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${lang.percentage}%` }}
+                  transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: "easeOut" }}
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: barColors[i % barColors.length] }}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-on-surface-variant">No language data available</p>
+      )}
     </div>
   );
 }
 
 function SlideReach({ data }: { data: WrappedData }) {
   return (
-    <div className="text-center">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 mb-8 shadow-lg"
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-rose-900 to-black rounded-3xl p-8">
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="font-headline-md text-headline-md text-white mb-8"
       >
-        <Users className="w-12 h-12" />
-      </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-sm uppercase tracking-widest text-muted-foreground mb-6"
-      >
-        Followers & Reach
-      </motion.p>
-      <div className="flex justify-center gap-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-center"
-        >
-          <p className="text-5xl font-bold mb-1"><AnimatedCounter end={data.followers} /></p>
-          <p className="text-sm text-muted-foreground">Followers</p>
-        </motion.div>
-        <div className="w-px bg-white/10 self-stretch" />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="text-center"
-        >
-          <p className="text-5xl font-bold mb-1"><AnimatedCounter end={data.following} /></p>
-          <p className="text-sm text-muted-foreground">Following</p>
-        </motion.div>
-        <div className="w-px bg-white/10 self-stretch" />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="text-center"
-        >
-          <p className="text-5xl font-bold mb-1"><AnimatedCounter end={data.totalStars} /></p>
-          <p className="text-sm text-muted-foreground">Stars Earned</p>
-        </motion.div>
+        Your Global Reach
+      </motion.h2>
+      <div className="grid grid-cols-3 gap-4 w-full max-w-lg">
+        {[
+          { icon: "group", label: "Followers", value: data.followers },
+          { icon: "person_add", label: "Following", value: data.following },
+          { icon: "star", label: "Stars Earned", value: data.totalStars },
+        ].map((item, i) => (
+          <motion.div
+            key={item.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.15 }}
+            className="glass-card rounded-2xl p-8 text-center"
+          >
+            <span className="material-symbols-outlined text-4xl text-primary mb-3 block">
+              {item.icon}
+            </span>
+            <div className="text-4xl font-bold text-white mb-1">
+              <AnimatedCounter end={item.value} />
+            </div>
+            <p className="text-xs text-on-surface-variant">{item.label}</p>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
 }
 
-function SlideAchievements({ data }: { data: WrappedData }) {
-  const unlocked = data.achievements.filter(a => a.unlocked);
+function SlidePersonality({ data }: { data: WrappedData }) {
+  const { personality } = data;
   return (
-    <div className="text-center max-w-lg mx-auto">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-cyan-900 via-blue-900 to-black rounded-3xl p-8">
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 mb-6 shadow-lg mx-auto"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="glass-card premium-border rounded-2xl p-8 text-center max-w-md w-full shadow-[0_0_50px_rgba(111,221,120,0.3)] hover:scale-105 transition-transform"
       >
-        <Trophy className="w-10 h-10" />
-      </motion.div>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-2xl font-bold mb-6"
-      >
-        Achievements
-      </motion.h2>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="space-y-3"
-      >
-        {unlocked.length > 0 ? (
-          unlocked.slice(0, 6).map((a, i) => (
-            <AchievementCard key={a.id} achievement={a} delay={i * 0.1} />
-          ))
-        ) : (
-          <p className="text-muted-foreground">No achievements unlocked yet</p>
-        )}
+        <div className="mb-6">
+          <span className="material-symbols-outlined text-9xl animate-float text-primary">
+            {personality.icon || "code"}
+          </span>
+        </div>
+        <h2 className="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-2">
+          {personality.type}
+        </h2>
+        <p className="font-body-lg text-body-lg text-on-surface-variant mb-4">
+          {personality.description}
+        </p>
+        <div className="flex gap-2 justify-center flex-wrap">
+          <span className="px-3 py-1 bg-white/10 rounded-full font-mono-label text-mono-label text-on-surface-variant">
+            {personality.badge}
+          </span>
+        </div>
       </motion.div>
     </div>
   );
 }
 
-function SlideSummary({ data }: { data: WrappedData }) {
-  const topLang = data.topLanguages[0]?.name || "code";
-  const summary = `${data.name} has built ${data.totalRepos} public repositories, earning ${data.totalStars} stars and ${data.totalForks} forks. ${topLang} is the primary language. With ${data.followers} followers and ${data.accountAge} years on GitHub, they've earned the ${data.personality.type} personality.`;
-
+function SlideAchievements({ data }: { data: WrappedData }) {
+  const achievements = data.achievements.slice(0, 6);
   return (
-    <div className="text-center max-w-xl mx-auto">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 mb-6 shadow-lg"
-      >
-        <Sparkles className="w-10 h-10" />
-      </motion.div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-amber-900 via-orange-950 to-black rounded-3xl p-8">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="text-2xl font-bold mb-6"
+        className="font-headline-md text-headline-md text-white mb-6"
       >
-        Year in Review
+        Unlocked Achievements
       </motion.h2>
+      {achievements.length > 0 ? (
+        <div className="grid grid-cols-3 gap-4">
+          {achievements.map((a, i) => (
+            <motion.div
+              key={a.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className={`glass-card rounded-2xl p-6 flex flex-col items-center gap-3 ${
+                !a.unlocked ? "opacity-40 grayscale" : ""
+              }`}
+            >
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                  a.unlocked ? "bg-primary/20" : "bg-white/5"
+                }`}
+              >
+                <span
+                  className={`material-symbols-outlined text-3xl ${
+                    a.unlocked ? "text-primary" : "text-on-surface-variant"
+                  }`}
+                >
+                  {a.icon || "emoji_events"}
+                </span>
+              </div>
+              <p className="font-mono-label text-mono-label text-xs text-center text-on-surface-variant">
+                {a.title}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-on-surface-variant">No achievements yet</p>
+      )}
+    </div>
+  );
+}
+
+function SlideSummary({ data }: { data: WrappedData }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-black rounded-3xl p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="glass-strong rounded-2xl p-6 mb-6"
+        transition={{ delay: 0.3 }}
+        className="glass-card premium-border rounded-2xl p-12 max-w-xl w-full"
       >
-        <p className="text-lg leading-relaxed text-muted-foreground">
-          {summary}
+        <h2 className="font-headline-md text-headline-md text-white mb-6 text-center">
+          The {new Date().getFullYear()} Summary
+        </h2>
+        <p className="font-body-lg text-body-lg leading-relaxed text-on-surface-variant">
+          {data.name} has built{" "}
+          <span className="text-primary font-bold">{data.totalRepos}</span> public
+          repositories, earning{" "}
+          <span className="text-secondary font-bold">{data.totalStars}</span> stars and{" "}
+          <span className="text-tertiary font-bold">{data.totalForks}</span> forks.{" "}
+          {data.topLanguages[0]?.name || "Code"} is the primary language. With{" "}
+          <span className="text-primary font-bold">{data.followers}</span> followers and{" "}
+          <span className="text-secondary font-bold">{data.accountAge}</span> years on GitHub,
+          they&apos;ve earned the{" "}
+          <span className="text-tertiary font-bold">{data.personality.type}</span> personality.
         </p>
       </motion.div>
     </div>
@@ -595,67 +575,35 @@ function SlideSummary({ data }: { data: WrappedData }) {
 }
 
 function SlideShare({ data }: { data: WrappedData }) {
-  const topLang = data.topLanguages[0]?.name || "Code";
   return (
-    <div className="text-center max-w-md mx-auto">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        className="mb-8 inline-block"
-      >
-        <Avatar className="w-20 h-20 ring-4 ring-purple-500/50 ring-offset-4 ring-offset-black mx-auto">
-          <AvatarImage src={data.avatarUrl} alt={data.name} />
-          <AvatarFallback className="text-2xl">{data.name[0]}</AvatarFallback>
-        </Avatar>
-      </motion.div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gradient-to-b from-primary/40 via-background to-black rounded-3xl p-8">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-3xl font-bold mb-2"
-      >
-        {data.name}
-      </motion.h2>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-muted-foreground mb-6"
+        className="font-display-xl text-display-lg-mobile md:text-display-xl text-white text-center mb-8"
       >
-        @{data.username}
-      </motion.p>
+        Ready to share?
+      </motion.h2>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="glass rounded-xl p-6 space-y-3"
+        className="flex flex-col sm:flex-row gap-4"
       >
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Repositories</span>
-          <span className="font-bold">{data.totalRepos}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Stars</span>
-          <span className="font-bold">{data.totalStars}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Top Language</span>
-          <span className="font-bold">{topLang}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Personality</span>
-          <span className="font-bold text-gradient">{data.personality.type}</span>
-        </div>
+        <button
+          onClick={() => (window.location.href = "/share")}
+          className="bg-primary text-on-primary font-semibold px-8 py-4 rounded-full text-lg transition-transform hover:scale-105"
+        >
+          Share My Wrapped
+        </button>
+        <button
+          onClick={() => (window.location.href = `/dashboard?username=${data.username}`)}
+          className="glass-card font-semibold px-8 py-4 rounded-full text-lg transition-transform hover:scale-105"
+        >
+          View Dashboard
+        </button>
       </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="text-xs text-muted-foreground mt-6"
-      >
-        Generate your own at github-wrapped.app
-      </motion.p>
     </div>
   );
 }

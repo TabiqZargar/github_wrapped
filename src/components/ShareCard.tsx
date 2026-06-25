@@ -3,9 +3,6 @@
 import { useRef } from "react";
 import { toPng, toJpeg } from "html-to-image";
 import { CardData } from "@/types";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Download, Twitter, Linkedin } from "lucide-react";
 
 interface ShareCardProps {
   data: CardData;
@@ -35,66 +32,66 @@ export function ShareCard({ data }: ShareCardProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col items-center gap-6">
       <div
         ref={cardRef}
-        className="relative w-[400px] h-[560px] overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 flex flex-col justify-between"
+        className="relative w-[400px] h-[560px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/20 bg-gradient-to-br from-primary/20 via-background to-tertiary/20"
       >
-        <div className="absolute inset-0 bg-grid opacity-20" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[100px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 blur-[80px] rounded-full" />
+        <div className="absolute inset-4 glass-card rounded-[2rem] p-8 flex flex-col items-center justify-between">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <img src={data.avatarUrl} alt={data.username} className="w-24 h-24 rounded-full border-4 border-primary object-cover" />
+              <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <span className="material-symbols-outlined text-[14px] text-on-primary">verified</span>
+              </span>
+            </div>
+            <div className="text-center">
+              <p className="font-display-lg text-display-lg-mobile text-on-background">@{data.username}</p>
+            </div>
+            <div className="bg-primary/20 rounded-full px-4 py-1">
+              <p className="text-sm text-primary font-medium">{data.personality}</p>
+            </div>
+          </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <Avatar className="w-12 h-12 ring-2 ring-purple-500/50">
-              <AvatarImage src={data.avatarUrl} alt={data.username} />
-              <AvatarFallback>{data.username[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-bold text-lg">{data.name}</h3>
-              <p className="text-sm text-muted-foreground">@{data.username}</p>
+          <div className="w-full grid grid-cols-2 gap-3">
+            <div className="bg-white/5 p-4 rounded-2xl text-center">
+              <p className="font-mono-label text-xs text-on-surface-variant uppercase tracking-wider">Total Repos</p>
+              <p className="font-display-lg text-display-lg-mobile text-primary mt-1">{data.totalRepos.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/5 p-4 rounded-2xl text-center">
+              <p className="font-mono-label text-xs text-on-surface-variant uppercase tracking-wider">Top Language</p>
+              <p className="font-headline-md text-headline-md text-secondary mt-1">{data.topLanguage}</p>
+            </div>
+            <div className="bg-white/5 p-4 rounded-2xl text-center">
+              <p className="font-mono-label text-xs text-on-surface-variant uppercase tracking-wider">Stars</p>
+              <p className="font-display-lg text-display-lg-mobile text-tertiary mt-1">{data.totalStars.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/5 p-4 rounded-2xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-4xl text-primary">workspace_premium</span>
             </div>
           </div>
-          <div className="text-5xl font-bold mb-2">
-            {data.totalRepos.toLocaleString()}
-          </div>
-          <p className="text-muted-foreground text-lg">public repositories</p>
-        </div>
 
-        <div className="relative z-10 space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1 glass rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Top Language</p>
-              <p className="font-bold text-lg">{data.topLanguage}</p>
-            </div>
-            <div className="flex-1 glass rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Stars Earned</p>
-              <p className="font-bold text-lg">{data.totalStars}</p>
-            </div>
-          </div>
-          <div className="glass rounded-xl p-4 text-center">
-            <p className="text-sm text-muted-foreground">Developer Personality</p>
-            <p className="font-bold text-xl text-gradient">{data.personality}</p>
-          </div>
-          <p className="text-xs text-center text-muted-foreground">
-            github-wrapped.app
-          </p>
+          <p className="font-mono-label text-xs text-on-surface-variant/50">github-wrapped.app</p>
         </div>
       </div>
 
-      <div className="flex gap-2 justify-center flex-wrap">
-        <Button variant="outline" size="sm" onClick={() => downloadImage("png")}>
-          <Download className="w-4 h-4 mr-2" /> PNG
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => downloadImage("jpeg")}>
-          <Download className="w-4 h-4 mr-2" /> JPEG
-        </Button>
-        <Button variant="outline" size="sm" onClick={shareTwitter}>
-          <Twitter className="w-4 h-4 mr-2" /> Tweet
-        </Button>
-        <Button variant="outline" size="sm" onClick={shareLinkedIn}>
-          <Linkedin className="w-4 h-4 mr-2" /> Post
-        </Button>
+      <div className="flex gap-3">
+        <button onClick={() => downloadImage("png")} className="flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all w-20">
+          <span className="material-symbols-outlined text-2xl text-on-surface">download</span>
+          <span className="font-mono-label text-[10px] text-on-surface-variant">PNG</span>
+        </button>
+        <button onClick={() => downloadImage("jpeg")} className="flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all w-20">
+          <span className="material-symbols-outlined text-2xl text-on-surface">image</span>
+          <span className="font-mono-label text-[10px] text-on-surface-variant">JPEG</span>
+        </button>
+        <button onClick={shareTwitter} className="flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all w-20">
+          <span className="material-symbols-outlined text-2xl" style={{ color: "#1DA1F2" }}>potted_plant</span>
+          <span className="font-mono-label text-[10px] text-on-surface-variant">Tweet</span>
+        </button>
+        <button onClick={shareLinkedIn} className="flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all w-20">
+          <span className="material-symbols-outlined text-2xl" style={{ color: "#0A66C2" }}>share</span>
+          <span className="font-mono-label text-[10px] text-on-surface-variant">Post</span>
+        </button>
       </div>
     </div>
   );
