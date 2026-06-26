@@ -50,13 +50,14 @@ export async function fetchPublicRepos(username: string): Promise<Repository[]> 
   return repos;
 }
 
-export async function fetchRepoLanguages(username: string, repo: string): Promise<Record<string, number>> {
+export async function fetchRepoLanguages(username: string, repo: string, primaryLanguage: string | null): Promise<Record<string, number>> {
+  if (!primaryLanguage) return {};
   try {
     return await githubFetch<Record<string, number>>(
       `${GITHUB_API}/repos/${username}/${repo}/languages`
     );
   } catch {
-    return {};
+    return { [primaryLanguage]: 1 };
   }
 }
 
@@ -69,23 +70,63 @@ export async function fetchAllLanguages(username: string, repos: Repository[]): 
     Haskell: "#5D4F85",
   };
 
-  const langMap = new Map<string, number>();
-  for (const repo of repos) {
-    if (repo.language) {
-      langMap.set(repo.language, (langMap.get(repo.language) || 0) + 1);
+  const reposWithLang = repos.filter((r) => r.language);
+  const langBytes = new Map<string, number>();
+  const langRepoSet = new Map<string, Set<string>>();
+
+  const batchSize = 5;
+  let byteFetchFailed = false;
+
+  for (let i = 0; i < reposWithLang.length; i += batchSize) {
+    const batch = reposWithLang.slice(i, i + batchSize);
+    const results = await Promise.allSettled(
+      batch.map((repo) => fetchRepoLanguages(username, repo.name, repo.language))
+    );
+    for (let j = 0; j < results.length; j++) {
+      const result = results[j];
+      const repoName = batch[j].name;
+      if (result.status === "fulfilled") {
+        const langData = result.value;
+        if (Object.keys(langData).length === 0) continue;
+        for (const [lang, bytes] of Object.entries(langData)) {
+          langBytes.set(lang, (langBytes.get(lang) || 0) + bytes);
+          if (!langRepoSet.has(lang)) langRepoSet.set(lang, new Set());
+          langRepoSet.get(lang)!.add(repoName);
+        }
+      } else {
+        byteFetchFailed = true;
+      }
+    }
+    if (byteFetchFailed) break;
+  }
+
+  if (langBytes.size === 0) {
+    console.warn("[fetchAllLanguages] All language API calls failed, falling back to primary language counts");
+    for (const repo of reposWithLang) {
+      const lang = repo.language!;
+      langBytes.set(lang, (langBytes.get(lang) || 0) + 1);
+      if (!langRepoSet.has(lang)) langRepoSet.set(lang, new Set());
+      langRepoSet.get(lang)!.add(repo.name);
     }
   }
 
-  const total = Array.from(langMap.values()).reduce((a, b) => a + b, 0);
+  const totalBytes = Array.from(langBytes.values()).reduce((a, b) => a + b, 0);
+  console.log(`[fetchAllLanguages] Total bytes across all languages: ${totalBytes}`);
 
-  return Array.from(langMap.entries())
-    .map(([name, count]) => ({
+  const sorted = Array.from(langBytes.entries())
+    .map(([name, bytes]) => ({
       name,
-      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      percentage: totalBytes > 0 ? parseFloat(((bytes / totalBytes) * 100).toFixed(1)) : 0,
       color: colors[name] || "#6B7280",
-      count,
+      count: langRepoSet.get(name)?.size || 1,
+      bytes,
     }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => b.bytes - a.bytes);
+
+  console.log(`[fetchAllLanguages] Detected ${sorted.length} unique languages`);
+  sorted.forEach((l) => console.log(`  ${l.name}: ${l.bytes} bytes (${l.percentage}%) across ${l.count} repos`));
+
+  return sorted;
 }
 
 export function calculateAccountAge(createdAt: string): number {

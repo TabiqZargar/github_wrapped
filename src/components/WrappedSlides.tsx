@@ -323,7 +323,7 @@ function SlideTopLanguage({ data }: { data: WrappedData }) {
         transition={{ delay: 1.3 }}
         className="text-on-surface-variant mt-3 font-mono-label text-mono-label relative z-10"
       >
-        {top.percentage.toFixed(0)}% of your code
+        {top.percentage.toFixed(1)}% of your code
       </motion.p>
     </div>
   );
@@ -405,7 +405,7 @@ function SlideDiversity({ data }: { data: WrappedData }) {
             >
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium text-on-surface-variant">{lang.name}</span>
-                <span className="text-sm text-on-surface-variant">{lang.percentage.toFixed(0)}%</span>
+                <span className="text-sm text-on-surface-variant">{lang.percentage.toFixed(1)}%</span>
               </div>
               <div className="h-3 rounded-full bg-white/10 overflow-hidden">
                 <motion.div

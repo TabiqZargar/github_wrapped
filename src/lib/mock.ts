@@ -37,11 +37,11 @@ export function generateMockData(username: string, avatarUrl: string, name: stri
   const totalCommits = Math.floor(1500 + Math.random() * 2500);
 
   const topLanguages = [
-    { name: "TypeScript", percentage: 35, color: "#3178C6", count: 2 },
-    { name: "JavaScript", percentage: 25, color: "#F7DF1E", count: 1 },
-    { name: "Python", percentage: 18, color: "#3572A5", count: 1 },
-    { name: "Rust", percentage: 12, color: "#DEA584", count: 1 },
-    { name: "Go", percentage: 10, color: "#00ADD8", count: 1 },
+    { name: "TypeScript", percentage: 35.0, color: "#3178C6", count: 2 },
+    { name: "JavaScript", percentage: 25.0, color: "#F7DF1E", count: 1 },
+    { name: "Python", percentage: 18.0, color: "#3572A5", count: 1 },
+    { name: "Rust", percentage: 12.0, color: "#DEA584", count: 1 },
+    { name: "Go", percentage: 10.0, color: "#00ADD8", count: 1 },
   ];
 
   const sortedRepos = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count);

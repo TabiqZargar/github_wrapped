@@ -25,7 +25,7 @@ interface CompareViewProps {
   year?: number;
 }
 
-export function CompareView({ data, year = 2025 }: CompareViewProps) {
+export function CompareView({ data, year = new Date().getFullYear() }: CompareViewProps) {
   const [mode, setMode] = useState<"year" | "friend">("year");
 
   const year2 = year - 1;

@@ -55,6 +55,7 @@ export interface LanguageStat {
   percentage: number;
   color: string;
   count: number;
+  bytes?: number;
 }
 
 export interface WrappedData {

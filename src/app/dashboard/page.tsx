@@ -556,7 +556,7 @@ function DashboardInner() {
                       Connect GitHub
                     </button>
                     <span className="px-3 py-1 rounded-full bg-white/5 text-on-surface-variant text-xs font-mono-label">
-                      Coming Late 2024
+                      Coming Late {new Date().getFullYear()}
                     </span>
                   </div>
                 </div>
@@ -571,7 +571,7 @@ function DashboardInner() {
               <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center">
                 <span className="material-symbols-outlined text-[10px] text-on-primary">terminal</span>
               </div>
-              &copy; 2024 Git Legend. All rights reserved.
+              &copy; {new Date().getFullYear()} Git Legend. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-on-surface-variant">
               <a href="#" className="hover:text-on-surface transition-colors">Privacy</a>
